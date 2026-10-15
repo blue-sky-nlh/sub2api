@@ -343,6 +343,12 @@ func TestCommandCodeGatewayPassesThroughCatalogProtocols(t *testing.T) {
 		}
 		url := buildOpenAIModelsURL(base + "/provider/v1")
 		key := modelProtocolCatalogKey(account, url)
+		// Keep independent forwarding scenarios isolated even when clock readings repeat.
+		defer func() {
+			upstreamModelProtocols.mu.Lock()
+			delete(upstreamModelProtocols.entries, key)
+			upstreamModelProtocols.mu.Unlock()
+		}()
 		if catalog != nil {
 			upstreamModelProtocols.store(key, catalog, nil, time.Now())
 		} else {
