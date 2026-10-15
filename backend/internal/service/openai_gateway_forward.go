@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Wei-Shaw/sub2api/internal/gatewayhooks"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/openai"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/openai_compat"
@@ -18,7 +19,14 @@ import (
 )
 
 // Forward forwards request to OpenAI API
-func (s *OpenAIGatewayService) Forward(ctx context.Context, c *gin.Context, account *Account, body []byte) (*OpenAIForwardResult, error) {
+func (s *OpenAIGatewayService) Forward(ctx context.Context, c *gin.Context, account *Account, body []byte) (weeklyResult *OpenAIForwardResult, weeklyErr error) {
+	ctx = weeklyForwardContext(ctx, c)
+	ctx, weeklyTrace, weeklyErr := s.prepareWeeklyForward(ctx, account)
+	if weeklyErr != nil {
+		return nil, weeklyErr
+	}
+	defer func() { s.finishWeeklyForward(weeklyTrace, weeklyResult) }()
+
 	beginUpstreamResponseModelObservation(c)
 	ClearActualOpenAIUpstreamEndpoint(c)
 	if shouldForwardOpenAIResponsesViaRawChatCompletions(account) {
@@ -902,6 +910,9 @@ func (s *OpenAIGatewayService) Forward(ctx context.Context, c *gin.Context, acco
 				wsLastFailureReason,
 				&agentTaskRecoveryTried,
 			)
+			if _, ok := gatewayhooks.AsQuotaError(wsErr); ok {
+				return wsResult, wsErr
+			}
 			if wsErr == nil {
 				break
 			}

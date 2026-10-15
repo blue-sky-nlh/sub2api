@@ -114,6 +114,14 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 		}()
 	}
 
+	ctx = weeklyForwardContext(ctx, c)
+	var weeklyCleanup func()
+	var weeklyErr error
+	ctx, hooks, weeklyCleanup, weeklyErr = s.prepareWeeklyWS(ctx, account, hooks)
+	if weeklyErr != nil {
+		return weeklyErr
+	}
+	defer weeklyCleanup()
 	wsDecision := s.getOpenAIWSProtocolResolver().Resolve(account)
 	forceHTTPBridge := account.Platform == PlatformGrok ||
 		(s.pluginManager != nil && s.pluginManager.ShouldRouteOpenAIOAuth(account))
@@ -963,6 +971,9 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 		}
 		turnStart := time.Now()
 		wroteDownstream := false
+		if err := s.CheckWeeklyQuota(ctx, account, nil); err != nil {
+			return nil, err
+		}
 		if err := lease.WriteJSONWithContextTimeout(ctx, json.RawMessage(payload), s.openAIWSWriteTimeout()); err != nil {
 			return nil, wrapOpenAIWSIngressTurnError(
 				"write_upstream",

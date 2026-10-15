@@ -15,6 +15,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolaccount"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 )
 
@@ -633,6 +634,21 @@ func (_u *AccountUpdate) AddUsageLogs(v ...*UsageLog) *AccountUpdate {
 	return _u.AddUsageLogIDs(ids...)
 }
 
+// AddQuotaPoolAccountIDs adds the "quota_pool_accounts" edge to the QuotaPoolAccount entity by IDs.
+func (_u *AccountUpdate) AddQuotaPoolAccountIDs(ids ...int64) *AccountUpdate {
+	_u.mutation.AddQuotaPoolAccountIDs(ids...)
+	return _u
+}
+
+// AddQuotaPoolAccounts adds the "quota_pool_accounts" edges to the QuotaPoolAccount entity.
+func (_u *AccountUpdate) AddQuotaPoolAccounts(v ...*QuotaPoolAccount) *AccountUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuotaPoolAccountIDs(ids...)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (_u *AccountUpdate) Mutation() *AccountMutation {
 	return _u.mutation
@@ -711,6 +727,27 @@ func (_u *AccountUpdate) RemoveUsageLogs(v ...*UsageLog) *AccountUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUsageLogIDs(ids...)
+}
+
+// ClearQuotaPoolAccounts clears all "quota_pool_accounts" edges to the QuotaPoolAccount entity.
+func (_u *AccountUpdate) ClearQuotaPoolAccounts() *AccountUpdate {
+	_u.mutation.ClearQuotaPoolAccounts()
+	return _u
+}
+
+// RemoveQuotaPoolAccountIDs removes the "quota_pool_accounts" edge to QuotaPoolAccount entities by IDs.
+func (_u *AccountUpdate) RemoveQuotaPoolAccountIDs(ids ...int64) *AccountUpdate {
+	_u.mutation.RemoveQuotaPoolAccountIDs(ids...)
+	return _u
+}
+
+// RemoveQuotaPoolAccounts removes "quota_pool_accounts" edges to QuotaPoolAccount entities.
+func (_u *AccountUpdate) RemoveQuotaPoolAccounts(v ...*QuotaPoolAccount) *AccountUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuotaPoolAccountIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1144,6 +1181,51 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuotaPoolAccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.QuotaPoolAccountsTable,
+			Columns: []string{account.QuotaPoolAccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolaccount.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuotaPoolAccountsIDs(); len(nodes) > 0 && !_u.mutation.QuotaPoolAccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.QuotaPoolAccountsTable,
+			Columns: []string{account.QuotaPoolAccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolaccount.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuotaPoolAccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.QuotaPoolAccountsTable,
+			Columns: []string{account.QuotaPoolAccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolaccount.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -1773,6 +1855,21 @@ func (_u *AccountUpdateOne) AddUsageLogs(v ...*UsageLog) *AccountUpdateOne {
 	return _u.AddUsageLogIDs(ids...)
 }
 
+// AddQuotaPoolAccountIDs adds the "quota_pool_accounts" edge to the QuotaPoolAccount entity by IDs.
+func (_u *AccountUpdateOne) AddQuotaPoolAccountIDs(ids ...int64) *AccountUpdateOne {
+	_u.mutation.AddQuotaPoolAccountIDs(ids...)
+	return _u
+}
+
+// AddQuotaPoolAccounts adds the "quota_pool_accounts" edges to the QuotaPoolAccount entity.
+func (_u *AccountUpdateOne) AddQuotaPoolAccounts(v ...*QuotaPoolAccount) *AccountUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuotaPoolAccountIDs(ids...)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (_u *AccountUpdateOne) Mutation() *AccountMutation {
 	return _u.mutation
@@ -1851,6 +1948,27 @@ func (_u *AccountUpdateOne) RemoveUsageLogs(v ...*UsageLog) *AccountUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUsageLogIDs(ids...)
+}
+
+// ClearQuotaPoolAccounts clears all "quota_pool_accounts" edges to the QuotaPoolAccount entity.
+func (_u *AccountUpdateOne) ClearQuotaPoolAccounts() *AccountUpdateOne {
+	_u.mutation.ClearQuotaPoolAccounts()
+	return _u
+}
+
+// RemoveQuotaPoolAccountIDs removes the "quota_pool_accounts" edge to QuotaPoolAccount entities by IDs.
+func (_u *AccountUpdateOne) RemoveQuotaPoolAccountIDs(ids ...int64) *AccountUpdateOne {
+	_u.mutation.RemoveQuotaPoolAccountIDs(ids...)
+	return _u
+}
+
+// RemoveQuotaPoolAccounts removes "quota_pool_accounts" edges to QuotaPoolAccount entities.
+func (_u *AccountUpdateOne) RemoveQuotaPoolAccounts(v ...*QuotaPoolAccount) *AccountUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuotaPoolAccountIDs(ids...)
 }
 
 // Where appends a list predicates to the AccountUpdate builder.
@@ -2314,6 +2432,51 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuotaPoolAccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.QuotaPoolAccountsTable,
+			Columns: []string{account.QuotaPoolAccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolaccount.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuotaPoolAccountsIDs(); len(nodes) > 0 && !_u.mutation.QuotaPoolAccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.QuotaPoolAccountsTable,
+			Columns: []string{account.QuotaPoolAccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolaccount.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuotaPoolAccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.QuotaPoolAccountsTable,
+			Columns: []string{account.QuotaPoolAccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolaccount.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

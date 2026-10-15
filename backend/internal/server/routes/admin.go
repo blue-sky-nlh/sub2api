@@ -46,6 +46,9 @@ func RegisterAdminRoutes(
 		// 账号管理
 		registerAccountRoutes(admin, h, stepUpAuth)
 
+		// 额度池管理
+		registerQuotaPoolRoutes(admin, h)
+
 		// 公告管理
 		registerAnnouncementRoutes(admin, h)
 
@@ -896,5 +899,28 @@ func channelMonitorModeV2Guard(settingService *service.SettingService) gin.Handl
 			return
 		}
 		c.Next()
+	}
+}
+
+func registerQuotaPoolRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	quotaPools := admin.Group("/quota-pools")
+	{
+		quotaPools.GET("", h.Admin.QuotaPool.List)
+		quotaPools.GET("/all", h.Admin.QuotaPool.ListAll)
+		quotaPools.GET("/:id", h.Admin.QuotaPool.GetByID)
+		quotaPools.POST("", h.Admin.QuotaPool.Create)
+		quotaPools.PUT("/:id", h.Admin.QuotaPool.Update)
+		quotaPools.DELETE("/:id", h.Admin.QuotaPool.Delete)
+
+		quotaPools.GET("/:id/accounts", h.Admin.QuotaPool.ListAccounts)
+		quotaPools.POST("/:id/accounts", h.Admin.QuotaPool.AddAccount)
+		quotaPools.DELETE("/:id/accounts/:binding_id", h.Admin.QuotaPool.DeleteAccountBinding)
+
+		quotaPools.GET("/:id/group-limits", h.Admin.QuotaPool.ListGroupLimits)
+		quotaPools.PUT("/:id/group-limits/:group_id", h.Admin.QuotaPool.UpsertGroupLimit)
+		quotaPools.DELETE("/:id/group-limits/:group_id", h.Admin.QuotaPool.DeleteGroupLimit)
+
+		quotaPools.GET("/:id/group-usage", h.Admin.QuotaPool.ListGroupUsage)
+		quotaPools.POST("/:id/group-usage/reset", h.Admin.QuotaPool.ResetGroupUsage)
 	}
 }

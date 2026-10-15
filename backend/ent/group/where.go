@@ -2788,6 +2788,52 @@ func HasAllowedUsersWith(preds ...predicate.User) predicate.Group {
 	})
 }
 
+// HasQuotaPoolLimits applies the HasEdge predicate on the "quota_pool_limits" edge.
+func HasQuotaPoolLimits() predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuotaPoolLimitsTable, QuotaPoolLimitsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuotaPoolLimitsWith applies the HasEdge predicate on the "quota_pool_limits" edge with a given conditions (other predicates).
+func HasQuotaPoolLimitsWith(preds ...predicate.QuotaPoolGroupLimit) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := newQuotaPoolLimitsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasQuotaPoolUsages applies the HasEdge predicate on the "quota_pool_usages" edge.
+func HasQuotaPoolUsages() predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuotaPoolUsagesTable, QuotaPoolUsagesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuotaPoolUsagesWith applies the HasEdge predicate on the "quota_pool_usages" edge with a given conditions (other predicates).
+func HasQuotaPoolUsagesWith(preds ...predicate.QuotaPoolGroupUsage) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := newQuotaPoolUsagesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAccountGroups applies the HasEdge predicate on the "account_groups" edge.
 func HasAccountGroups() predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {

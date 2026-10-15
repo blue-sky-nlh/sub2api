@@ -507,7 +507,7 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		quotaPlatform = PlatformFromAPIKey(apiKey)
 	}
 
-	_, billingErr := applyUsageBilling(ctx, requestID, usageLog, &postUsageBillingParams{
+	billingApplied, billingErr := applyUsageBilling(ctx, requestID, usageLog, &postUsageBillingParams{
 		Cost:                       cost,
 		User:                       user,
 		APIKey:                     apiKey,
@@ -527,6 +527,7 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		return billingErr
 	}
 	writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.openai_gateway")
+	afterUsageRecordedGatewayHooks(ctx, s.gatewayHooks, quotaPlatform, account, apiKey, user, result.Model, result.UpstreamModel, cost.ActualCost, billingApplied)
 
 	return nil
 }
@@ -1046,7 +1047,7 @@ func ParseCodexRateLimitHeaders(headers http.Header) *OpenAICodexUsageSnapshot {
 		return nil
 	}
 
-	snapshot.UpdatedAt = time.Now().Format(time.RFC3339)
+	snapshot.UpdatedAt = time.Now().Format(time.RFC3339Nano)
 	return snapshot
 }
 
@@ -1152,6 +1153,7 @@ func (s *OpenAIGatewayService) updateCodexUsageSnapshot(ctx context.Context, acc
 		return
 	}
 
+	s.observeWeeklyHeaders(ctx, accountID, snapshot)
 	now := time.Now()
 	updates := buildCodexUsageExtraUpdates(snapshot, now)
 	if len(updates) == 0 {

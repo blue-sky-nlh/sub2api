@@ -321,6 +321,54 @@ func (f ProxyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProxyMutation", m)
 }
 
+// The QuotaPoolFunc type is an adapter to allow the use of ordinary
+// function as QuotaPool mutator.
+type QuotaPoolFunc func(context.Context, *ent.QuotaPoolMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuotaPoolFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuotaPoolMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuotaPoolMutation", m)
+}
+
+// The QuotaPoolAccountFunc type is an adapter to allow the use of ordinary
+// function as QuotaPoolAccount mutator.
+type QuotaPoolAccountFunc func(context.Context, *ent.QuotaPoolAccountMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuotaPoolAccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuotaPoolAccountMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuotaPoolAccountMutation", m)
+}
+
+// The QuotaPoolGroupLimitFunc type is an adapter to allow the use of ordinary
+// function as QuotaPoolGroupLimit mutator.
+type QuotaPoolGroupLimitFunc func(context.Context, *ent.QuotaPoolGroupLimitMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuotaPoolGroupLimitFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuotaPoolGroupLimitMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuotaPoolGroupLimitMutation", m)
+}
+
+// The QuotaPoolGroupUsageFunc type is an adapter to allow the use of ordinary
+// function as QuotaPoolGroupUsage mutator.
+type QuotaPoolGroupUsageFunc func(context.Context, *ent.QuotaPoolGroupUsageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuotaPoolGroupUsageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuotaPoolGroupUsageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuotaPoolGroupUsageMutation", m)
+}
+
 // The RedeemCodeFunc type is an adapter to allow the use of ordinary
 // function as RedeemCode mutator.
 type RedeemCodeFunc func(context.Context, *ent.RedeemCodeMutation) (ent.Value, error)

@@ -227,6 +227,7 @@ func (Account) Edges() []ent.Edge {
 			Unique(),
 		// usage_logs: 该账户的使用日志
 		edge.To("usage_logs", UsageLog.Type),
+		edge.To("quota_pool_accounts", QuotaPoolAccount.Type),
 	}
 }
 

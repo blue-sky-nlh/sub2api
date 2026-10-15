@@ -17,6 +17,8 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgrouplimit"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgroupusage"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -1314,6 +1316,36 @@ func (_u *GroupUpdate) AddAllowedUsers(v ...*User) *GroupUpdate {
 	return _u.AddAllowedUserIDs(ids...)
 }
 
+// AddQuotaPoolLimitIDs adds the "quota_pool_limits" edge to the QuotaPoolGroupLimit entity by IDs.
+func (_u *GroupUpdate) AddQuotaPoolLimitIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.AddQuotaPoolLimitIDs(ids...)
+	return _u
+}
+
+// AddQuotaPoolLimits adds the "quota_pool_limits" edges to the QuotaPoolGroupLimit entity.
+func (_u *GroupUpdate) AddQuotaPoolLimits(v ...*QuotaPoolGroupLimit) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuotaPoolLimitIDs(ids...)
+}
+
+// AddQuotaPoolUsageIDs adds the "quota_pool_usages" edge to the QuotaPoolGroupUsage entity by IDs.
+func (_u *GroupUpdate) AddQuotaPoolUsageIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.AddQuotaPoolUsageIDs(ids...)
+	return _u
+}
+
+// AddQuotaPoolUsages adds the "quota_pool_usages" edges to the QuotaPoolGroupUsage entity.
+func (_u *GroupUpdate) AddQuotaPoolUsages(v ...*QuotaPoolGroupUsage) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuotaPoolUsageIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdate) Mutation() *GroupMutation {
 	return _u.mutation
@@ -1443,6 +1475,48 @@ func (_u *GroupUpdate) RemoveAllowedUsers(v ...*User) *GroupUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllowedUserIDs(ids...)
+}
+
+// ClearQuotaPoolLimits clears all "quota_pool_limits" edges to the QuotaPoolGroupLimit entity.
+func (_u *GroupUpdate) ClearQuotaPoolLimits() *GroupUpdate {
+	_u.mutation.ClearQuotaPoolLimits()
+	return _u
+}
+
+// RemoveQuotaPoolLimitIDs removes the "quota_pool_limits" edge to QuotaPoolGroupLimit entities by IDs.
+func (_u *GroupUpdate) RemoveQuotaPoolLimitIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.RemoveQuotaPoolLimitIDs(ids...)
+	return _u
+}
+
+// RemoveQuotaPoolLimits removes "quota_pool_limits" edges to QuotaPoolGroupLimit entities.
+func (_u *GroupUpdate) RemoveQuotaPoolLimits(v ...*QuotaPoolGroupLimit) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuotaPoolLimitIDs(ids...)
+}
+
+// ClearQuotaPoolUsages clears all "quota_pool_usages" edges to the QuotaPoolGroupUsage entity.
+func (_u *GroupUpdate) ClearQuotaPoolUsages() *GroupUpdate {
+	_u.mutation.ClearQuotaPoolUsages()
+	return _u
+}
+
+// RemoveQuotaPoolUsageIDs removes the "quota_pool_usages" edge to QuotaPoolGroupUsage entities by IDs.
+func (_u *GroupUpdate) RemoveQuotaPoolUsageIDs(ids ...int64) *GroupUpdate {
+	_u.mutation.RemoveQuotaPoolUsageIDs(ids...)
+	return _u
+}
+
+// RemoveQuotaPoolUsages removes "quota_pool_usages" edges to QuotaPoolGroupUsage entities.
+func (_u *GroupUpdate) RemoveQuotaPoolUsages(v ...*QuotaPoolGroupUsage) *GroupUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuotaPoolUsageIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2218,6 +2292,96 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuotaPoolLimitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolLimitsTable,
+			Columns: []string{group.QuotaPoolLimitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgrouplimit.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuotaPoolLimitsIDs(); len(nodes) > 0 && !_u.mutation.QuotaPoolLimitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolLimitsTable,
+			Columns: []string{group.QuotaPoolLimitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgrouplimit.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuotaPoolLimitsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolLimitsTable,
+			Columns: []string{group.QuotaPoolLimitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgrouplimit.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuotaPoolUsagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolUsagesTable,
+			Columns: []string{group.QuotaPoolUsagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgroupusage.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuotaPoolUsagesIDs(); len(nodes) > 0 && !_u.mutation.QuotaPoolUsagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolUsagesTable,
+			Columns: []string{group.QuotaPoolUsagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgroupusage.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuotaPoolUsagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolUsagesTable,
+			Columns: []string{group.QuotaPoolUsagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgroupusage.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -3517,6 +3681,36 @@ func (_u *GroupUpdateOne) AddAllowedUsers(v ...*User) *GroupUpdateOne {
 	return _u.AddAllowedUserIDs(ids...)
 }
 
+// AddQuotaPoolLimitIDs adds the "quota_pool_limits" edge to the QuotaPoolGroupLimit entity by IDs.
+func (_u *GroupUpdateOne) AddQuotaPoolLimitIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.AddQuotaPoolLimitIDs(ids...)
+	return _u
+}
+
+// AddQuotaPoolLimits adds the "quota_pool_limits" edges to the QuotaPoolGroupLimit entity.
+func (_u *GroupUpdateOne) AddQuotaPoolLimits(v ...*QuotaPoolGroupLimit) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuotaPoolLimitIDs(ids...)
+}
+
+// AddQuotaPoolUsageIDs adds the "quota_pool_usages" edge to the QuotaPoolGroupUsage entity by IDs.
+func (_u *GroupUpdateOne) AddQuotaPoolUsageIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.AddQuotaPoolUsageIDs(ids...)
+	return _u
+}
+
+// AddQuotaPoolUsages adds the "quota_pool_usages" edges to the QuotaPoolGroupUsage entity.
+func (_u *GroupUpdateOne) AddQuotaPoolUsages(v ...*QuotaPoolGroupUsage) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuotaPoolUsageIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdateOne) Mutation() *GroupMutation {
 	return _u.mutation
@@ -3646,6 +3840,48 @@ func (_u *GroupUpdateOne) RemoveAllowedUsers(v ...*User) *GroupUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllowedUserIDs(ids...)
+}
+
+// ClearQuotaPoolLimits clears all "quota_pool_limits" edges to the QuotaPoolGroupLimit entity.
+func (_u *GroupUpdateOne) ClearQuotaPoolLimits() *GroupUpdateOne {
+	_u.mutation.ClearQuotaPoolLimits()
+	return _u
+}
+
+// RemoveQuotaPoolLimitIDs removes the "quota_pool_limits" edge to QuotaPoolGroupLimit entities by IDs.
+func (_u *GroupUpdateOne) RemoveQuotaPoolLimitIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.RemoveQuotaPoolLimitIDs(ids...)
+	return _u
+}
+
+// RemoveQuotaPoolLimits removes "quota_pool_limits" edges to QuotaPoolGroupLimit entities.
+func (_u *GroupUpdateOne) RemoveQuotaPoolLimits(v ...*QuotaPoolGroupLimit) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuotaPoolLimitIDs(ids...)
+}
+
+// ClearQuotaPoolUsages clears all "quota_pool_usages" edges to the QuotaPoolGroupUsage entity.
+func (_u *GroupUpdateOne) ClearQuotaPoolUsages() *GroupUpdateOne {
+	_u.mutation.ClearQuotaPoolUsages()
+	return _u
+}
+
+// RemoveQuotaPoolUsageIDs removes the "quota_pool_usages" edge to QuotaPoolGroupUsage entities by IDs.
+func (_u *GroupUpdateOne) RemoveQuotaPoolUsageIDs(ids ...int64) *GroupUpdateOne {
+	_u.mutation.RemoveQuotaPoolUsageIDs(ids...)
+	return _u
+}
+
+// RemoveQuotaPoolUsages removes "quota_pool_usages" edges to QuotaPoolGroupUsage entities.
+func (_u *GroupUpdateOne) RemoveQuotaPoolUsages(v ...*QuotaPoolGroupUsage) *GroupUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuotaPoolUsageIDs(ids...)
 }
 
 // Where appends a list predicates to the GroupUpdate builder.
@@ -4451,6 +4687,96 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuotaPoolLimitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolLimitsTable,
+			Columns: []string{group.QuotaPoolLimitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgrouplimit.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuotaPoolLimitsIDs(); len(nodes) > 0 && !_u.mutation.QuotaPoolLimitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolLimitsTable,
+			Columns: []string{group.QuotaPoolLimitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgrouplimit.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuotaPoolLimitsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolLimitsTable,
+			Columns: []string{group.QuotaPoolLimitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgrouplimit.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuotaPoolUsagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolUsagesTable,
+			Columns: []string{group.QuotaPoolUsagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgroupusage.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuotaPoolUsagesIDs(); len(nodes) > 0 && !_u.mutation.QuotaPoolUsagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolUsagesTable,
+			Columns: []string{group.QuotaPoolUsagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgroupusage.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuotaPoolUsagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.QuotaPoolUsagesTable,
+			Columns: []string{group.QuotaPoolUsagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolgroupusage.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Group{config: _u.config}

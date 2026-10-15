@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/Wei-Shaw/sub2api/internal/gatewayhooks"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -42,10 +43,11 @@ const (
 // /wham/usage. The upstream returns an explicit `null` window when the slot
 // is unused, so consumers should treat a nil pointer as "no data".
 type OpenAIRateLimitWindow struct {
-	UsedPercent        float64 `json:"used_percent"`
-	LimitWindowSeconds int64   `json:"limit_window_seconds"`
-	ResetAfterSeconds  int64   `json:"reset_after_seconds"`
-	ResetAt            int64   `json:"reset_at"`
+	UsedPercent          float64 `json:"used_percent"`
+	LimitWindowSeconds   int64   `json:"limit_window_seconds"`
+	ResetAfterSeconds    int64   `json:"reset_after_seconds"`
+	ResetAt              int64   `json:"reset_at"`
+	weeklyPercentPresent bool
 }
 
 // OpenAIRateLimit is a rate-limit envelope (primary + optional secondary window).
@@ -105,6 +107,8 @@ type OpenAIQuotaUsage struct {
 	Credits               *OpenAICredits               `json:"credits,omitempty"`
 	FetchedAt             int64                        `json:"fetched_at"`
 	autoResetCandidates   []openAIAutoResetCreditCandidate
+	weeklyObservedAt      time.Time
+	weeklyIdentity        string
 }
 
 // OpenAIQuotaResetCredit captures the redeemed credit metadata returned by the
@@ -139,6 +143,9 @@ type OpenAIQuotaService struct {
 	referralClient       OpenAIReferralClient
 	agentIdentityTaskMu  sync.Mutex
 	agentIdentityWS      agentIdentityWSConnectionInvalidator
+	weeklyHooks          *gatewayhooks.Manager
+	weeklyCancel         context.CancelFunc
+	weeklyWG             sync.WaitGroup
 }
 
 // NewOpenAIQuotaService constructs a quota service. token provider is required —
@@ -163,7 +170,17 @@ func NewOpenAIQuotaService(
 // QueryUsage fetches the latest rate-limit/usage snapshot for the given OpenAI
 // OAuth account. Returns infraerrors so the handler layer can map them to
 // stable error codes / HTTP statuses.
-func (s *OpenAIQuotaService) QueryUsage(ctx context.Context, accountID int64) (*OpenAIQuotaUsage, error) {
+func (s *OpenAIQuotaService) QueryUsage(ctx context.Context, accountID int64) (result *OpenAIQuotaUsage, returnErr error) {
+	queryStarted := time.Now().UTC()
+	defer func() {
+		if returnErr != nil && s != nil && s.weeklyHooks != nil {
+			failureCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := s.observeWeeklyUsage(failureCtx, accountID, nil); err != nil {
+				slog.Error("weekly_quota_failure_state_persist_failed", "account_id", accountID, "err", err)
+			}
+		}
+	}()
 	accessToken, chatGPTAccountID, proxyURL, fedRAMP, err := s.prepareUpstreamCall(ctx, accountID)
 	if err != nil {
 		return nil, err
@@ -213,6 +230,8 @@ func (s *OpenAIQuotaService) QueryUsage(ctx context.Context, accountID int64) (*
 	}
 
 	payload.FetchedAt = time.Now().Unix()
+	payload.weeklyObservedAt = queryStarted
+	payload.weeklyIdentity = chatGPTAccountID
 	details := s.queryResetCreditDetails(callCtx, client, accessToken, chatGPTAccountID, fedRAMP, accountID)
 	if details != nil {
 		payload.autoResetCandidates = details.AutoResetCandidates
@@ -229,6 +248,9 @@ func (s *OpenAIQuotaService) QueryUsage(ctx context.Context, accountID int64) (*
 		case details.CreditListPresent:
 			payload.RateLimitResetCredits.AvailableCount = details.AvailableCreditCount
 		}
+	}
+	if err := s.observeWeeklyUsage(ctx, accountID, &payload); err != nil {
+		return nil, err
 	}
 	return &payload, nil
 }
@@ -430,6 +452,16 @@ func (s *OpenAIQuotaService) resetCredit(ctx context.Context, accountID int64, c
 		break
 	}
 
+	if s.weeklyHooks != nil && payload.Code == "ok" && payload.WindowsReset == 2 && payload.Credit != nil &&
+		payload.Credit.ResetType == "codex_rate_limits" && payload.Credit.Status == "redeemed" && payload.Credit.ID != "" {
+		if err := s.weeklyHooks.MarkWeeklyReset(ctx, gatewayhooks.WeeklyReset{
+			AccountID: accountID, ID: payload.Credit.ID, At: time.Now().UTC(),
+		}); err != nil {
+			if q, ok := gatewayhooks.AsQuotaError(err); !ok || q.Code != "quota_pool_binding_invalid" {
+				return nil, err
+			}
+		}
+	}
 	slog.Info("openai_quota_reset_success",
 		"account_id", accountID,
 		"code", payload.Code,

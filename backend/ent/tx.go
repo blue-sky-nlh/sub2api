@@ -66,6 +66,14 @@ type Tx struct {
 	PromoCodeUsage *PromoCodeUsageClient
 	// Proxy is the client for interacting with the Proxy builders.
 	Proxy *ProxyClient
+	// QuotaPool is the client for interacting with the QuotaPool builders.
+	QuotaPool *QuotaPoolClient
+	// QuotaPoolAccount is the client for interacting with the QuotaPoolAccount builders.
+	QuotaPoolAccount *QuotaPoolAccountClient
+	// QuotaPoolGroupLimit is the client for interacting with the QuotaPoolGroupLimit builders.
+	QuotaPoolGroupLimit *QuotaPoolGroupLimitClient
+	// QuotaPoolGroupUsage is the client for interacting with the QuotaPoolGroupUsage builders.
+	QuotaPoolGroupUsage *QuotaPoolGroupUsageClient
 	// RedeemCode is the client for interacting with the RedeemCode builders.
 	RedeemCode *RedeemCodeClient
 	// SecuritySecret is the client for interacting with the SecuritySecret builders.
@@ -249,6 +257,10 @@ func (tx *Tx) init() {
 	tx.PromoCode = NewPromoCodeClient(tx.config)
 	tx.PromoCodeUsage = NewPromoCodeUsageClient(tx.config)
 	tx.Proxy = NewProxyClient(tx.config)
+	tx.QuotaPool = NewQuotaPoolClient(tx.config)
+	tx.QuotaPoolAccount = NewQuotaPoolAccountClient(tx.config)
+	tx.QuotaPoolGroupLimit = NewQuotaPoolGroupLimitClient(tx.config)
+	tx.QuotaPoolGroupUsage = NewQuotaPoolGroupUsageClient(tx.config)
 	tx.RedeemCode = NewRedeemCodeClient(tx.config)
 	tx.SecuritySecret = NewSecuritySecretClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)

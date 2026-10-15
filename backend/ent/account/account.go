@@ -88,6 +88,8 @@ const (
 	EdgeChildren = "children"
 	// EdgeUsageLogs holds the string denoting the usage_logs edge name in mutations.
 	EdgeUsageLogs = "usage_logs"
+	// EdgeQuotaPoolAccounts holds the string denoting the quota_pool_accounts edge name in mutations.
+	EdgeQuotaPoolAccounts = "quota_pool_accounts"
 	// EdgeAccountGroups holds the string denoting the account_groups edge name in mutations.
 	EdgeAccountGroups = "account_groups"
 	// Table holds the table name of the account in the database.
@@ -119,6 +121,13 @@ const (
 	UsageLogsInverseTable = "usage_logs"
 	// UsageLogsColumn is the table column denoting the usage_logs relation/edge.
 	UsageLogsColumn = "account_id"
+	// QuotaPoolAccountsTable is the table that holds the quota_pool_accounts relation/edge.
+	QuotaPoolAccountsTable = "quota_pool_accounts"
+	// QuotaPoolAccountsInverseTable is the table name for the QuotaPoolAccount entity.
+	// It exists in this package in order to avoid circular dependency with the "quotapoolaccount" package.
+	QuotaPoolAccountsInverseTable = "quota_pool_accounts"
+	// QuotaPoolAccountsColumn is the table column denoting the quota_pool_accounts relation/edge.
+	QuotaPoolAccountsColumn = "account_id"
 	// AccountGroupsTable is the table that holds the account_groups relation/edge.
 	AccountGroupsTable = "account_groups"
 	// AccountGroupsInverseTable is the table name for the AccountGroup entity.
@@ -457,6 +466,20 @@ func ByUsageLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByQuotaPoolAccountsCount orders the results by quota_pool_accounts count.
+func ByQuotaPoolAccountsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuotaPoolAccountsStep(), opts...)
+	}
+}
+
+// ByQuotaPoolAccounts orders the results by quota_pool_accounts terms.
+func ByQuotaPoolAccounts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuotaPoolAccountsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAccountGroupsCount orders the results by account_groups count.
 func ByAccountGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -503,6 +526,13 @@ func newUsageLogsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UsageLogsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UsageLogsTable, UsageLogsColumn),
+	)
+}
+func newQuotaPoolAccountsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuotaPoolAccountsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuotaPoolAccountsTable, QuotaPoolAccountsColumn),
 	)
 }
 func newAccountGroupsStep() *sqlgraph.Step {

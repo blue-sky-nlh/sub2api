@@ -288,6 +288,8 @@ type RateLimitCacheInvalidator interface {
 }
 
 type APIKeyService struct {
+	weeklyScopeRepo           QuotaPoolRepository
+	weeklyScopeRequired       bool
 	apiKeyRepo                APIKeyRepository
 	userRepo                  UserRepository
 	groupRepo                 GroupRepository

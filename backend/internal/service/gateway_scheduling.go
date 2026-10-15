@@ -1036,6 +1036,9 @@ func (s *GatewayService) listSchedulableAccounts(ctx context.Context, groupID *i
 				}
 			}
 		}
+		if err == nil {
+			accounts, err = filterAccountsByGatewayHooks(ctx, s.gatewayHooks, accounts, platform, groupID, 0, "")
+		}
 		return accounts, useMixed, err
 	}
 	useMixed := (platform == PlatformAnthropic || platform == PlatformGemini) && !hasForcePlatform
@@ -1080,7 +1083,9 @@ func (s *GatewayService) listSchedulableAccounts(ctx context.Context, groupID *i
 					"tls_fingerprint", acc.IsTLSFingerprintEnabled())
 			}
 		}
-		return s.filterAccountsBySchedulingThreshold(ctx, filtered), useMixed, nil
+		filtered = s.filterAccountsBySchedulingThreshold(ctx, filtered)
+		filtered, err = filterAccountsByGatewayHooks(ctx, s.gatewayHooks, filtered, platform, groupID, 0, "")
+		return filtered, useMixed, err
 	}
 
 	var accounts []Account
@@ -1119,7 +1124,8 @@ func (s *GatewayService) listSchedulableAccounts(ctx context.Context, groupID *i
 	if platform == PlatformGrok || strings.EqualFold(platform, PlatformGrok) {
 		accounts = s.filterGrokFreeQuotaAccountsForGateway(ctx, accounts)
 	}
-	return accounts, useMixed, nil
+	accounts, err = filterAccountsByGatewayHooks(ctx, s.gatewayHooks, accounts, platform, groupID, 0, "")
+	return accounts, useMixed, err
 }
 
 // IsSingleAntigravityAccountGroup 检查指定分组是否只有一个 antigravity 平台的可调度账号。

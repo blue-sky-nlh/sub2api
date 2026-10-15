@@ -162,6 +162,10 @@ const (
 	EdgeAccounts = "accounts"
 	// EdgeAllowedUsers holds the string denoting the allowed_users edge name in mutations.
 	EdgeAllowedUsers = "allowed_users"
+	// EdgeQuotaPoolLimits holds the string denoting the quota_pool_limits edge name in mutations.
+	EdgeQuotaPoolLimits = "quota_pool_limits"
+	// EdgeQuotaPoolUsages holds the string denoting the quota_pool_usages edge name in mutations.
+	EdgeQuotaPoolUsages = "quota_pool_usages"
 	// EdgeAccountGroups holds the string denoting the account_groups edge name in mutations.
 	EdgeAccountGroups = "account_groups"
 	// EdgeUserAllowedGroups holds the string denoting the user_allowed_groups edge name in mutations.
@@ -206,6 +210,20 @@ const (
 	// AllowedUsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	AllowedUsersInverseTable = "users"
+	// QuotaPoolLimitsTable is the table that holds the quota_pool_limits relation/edge.
+	QuotaPoolLimitsTable = "quota_pool_group_limits"
+	// QuotaPoolLimitsInverseTable is the table name for the QuotaPoolGroupLimit entity.
+	// It exists in this package in order to avoid circular dependency with the "quotapoolgrouplimit" package.
+	QuotaPoolLimitsInverseTable = "quota_pool_group_limits"
+	// QuotaPoolLimitsColumn is the table column denoting the quota_pool_limits relation/edge.
+	QuotaPoolLimitsColumn = "group_id"
+	// QuotaPoolUsagesTable is the table that holds the quota_pool_usages relation/edge.
+	QuotaPoolUsagesTable = "quota_pool_group_usage"
+	// QuotaPoolUsagesInverseTable is the table name for the QuotaPoolGroupUsage entity.
+	// It exists in this package in order to avoid circular dependency with the "quotapoolgroupusage" package.
+	QuotaPoolUsagesInverseTable = "quota_pool_group_usage"
+	// QuotaPoolUsagesColumn is the table column denoting the quota_pool_usages relation/edge.
+	QuotaPoolUsagesColumn = "group_id"
 	// AccountGroupsTable is the table that holds the account_groups relation/edge.
 	AccountGroupsTable = "account_groups"
 	// AccountGroupsInverseTable is the table name for the AccountGroup entity.
@@ -823,6 +841,34 @@ func ByAllowedUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByQuotaPoolLimitsCount orders the results by quota_pool_limits count.
+func ByQuotaPoolLimitsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuotaPoolLimitsStep(), opts...)
+	}
+}
+
+// ByQuotaPoolLimits orders the results by quota_pool_limits terms.
+func ByQuotaPoolLimits(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuotaPoolLimitsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByQuotaPoolUsagesCount orders the results by quota_pool_usages count.
+func ByQuotaPoolUsagesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuotaPoolUsagesStep(), opts...)
+	}
+}
+
+// ByQuotaPoolUsages orders the results by quota_pool_usages terms.
+func ByQuotaPoolUsages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuotaPoolUsagesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAccountGroupsCount orders the results by account_groups count.
 func ByAccountGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -890,6 +936,20 @@ func newAllowedUsersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AllowedUsersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, AllowedUsersTable, AllowedUsersPrimaryKey...),
+	)
+}
+func newQuotaPoolLimitsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuotaPoolLimitsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuotaPoolLimitsTable, QuotaPoolLimitsColumn),
+	)
+}
+func newQuotaPoolUsagesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuotaPoolUsagesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuotaPoolUsagesTable, QuotaPoolUsagesColumn),
 	)
 }
 func newAccountGroupsStep() *sqlgraph.Step {

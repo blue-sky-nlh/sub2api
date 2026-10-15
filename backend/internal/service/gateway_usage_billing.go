@@ -873,7 +873,7 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 		}
 	}
 	requestID := usageLog.RequestID
-	_, billingErr := applyUsageBilling(ctx, requestID, usageLog, &postUsageBillingParams{
+	billingApplied, billingErr := applyUsageBilling(ctx, requestID, usageLog, &postUsageBillingParams{
 		Cost:                       cost,
 		User:                       user,
 		APIKey:                     apiKey,
@@ -893,6 +893,7 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 		return billingErr
 	}
 	writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.gateway")
+	afterUsageRecordedGatewayHooks(ctx, s.gatewayHooks, quotaPlatform, account, apiKey, user, result.Model, result.UpstreamModel, cost.ActualCost, billingApplied)
 
 	return nil
 }

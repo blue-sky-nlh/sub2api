@@ -526,6 +526,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/quota-pools',
+    name: 'AdminQuotaPools',
+    component: () => import('@/views/admin/QuotaPoolsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Quota Pool Management',
+      titleKey: 'admin.quotaPools.title',
+      descriptionKey: 'admin.quotaPools.description'
+    }
+  },
+  {
     path: '/admin/plugins',
     name: 'AdminPlugins',
     component: () => import('@/views/admin/PluginsView.vue'),

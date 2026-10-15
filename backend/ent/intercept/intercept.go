@@ -35,6 +35,10 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/promocode"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
+	"github.com/Wei-Shaw/sub2api/ent/quotapool"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolaccount"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgrouplimit"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgroupusage"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/securitysecret"
 	"github.com/Wei-Shaw/sub2api/ent/setting"
@@ -808,6 +812,114 @@ func (f TraverseProxy) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.ProxyQuery", q)
 }
 
+// The QuotaPoolFunc type is an adapter to allow the use of ordinary function as a Querier.
+type QuotaPoolFunc func(context.Context, *ent.QuotaPoolQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f QuotaPoolFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.QuotaPoolQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolQuery", q)
+}
+
+// The TraverseQuotaPool type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseQuotaPool func(context.Context, *ent.QuotaPoolQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseQuotaPool) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseQuotaPool) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.QuotaPoolQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolQuery", q)
+}
+
+// The QuotaPoolAccountFunc type is an adapter to allow the use of ordinary function as a Querier.
+type QuotaPoolAccountFunc func(context.Context, *ent.QuotaPoolAccountQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f QuotaPoolAccountFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.QuotaPoolAccountQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolAccountQuery", q)
+}
+
+// The TraverseQuotaPoolAccount type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseQuotaPoolAccount func(context.Context, *ent.QuotaPoolAccountQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseQuotaPoolAccount) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseQuotaPoolAccount) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.QuotaPoolAccountQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolAccountQuery", q)
+}
+
+// The QuotaPoolGroupLimitFunc type is an adapter to allow the use of ordinary function as a Querier.
+type QuotaPoolGroupLimitFunc func(context.Context, *ent.QuotaPoolGroupLimitQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f QuotaPoolGroupLimitFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.QuotaPoolGroupLimitQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolGroupLimitQuery", q)
+}
+
+// The TraverseQuotaPoolGroupLimit type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseQuotaPoolGroupLimit func(context.Context, *ent.QuotaPoolGroupLimitQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseQuotaPoolGroupLimit) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseQuotaPoolGroupLimit) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.QuotaPoolGroupLimitQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolGroupLimitQuery", q)
+}
+
+// The QuotaPoolGroupUsageFunc type is an adapter to allow the use of ordinary function as a Querier.
+type QuotaPoolGroupUsageFunc func(context.Context, *ent.QuotaPoolGroupUsageQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f QuotaPoolGroupUsageFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.QuotaPoolGroupUsageQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolGroupUsageQuery", q)
+}
+
+// The TraverseQuotaPoolGroupUsage type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseQuotaPoolGroupUsage func(context.Context, *ent.QuotaPoolGroupUsageQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseQuotaPoolGroupUsage) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseQuotaPoolGroupUsage) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.QuotaPoolGroupUsageQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.QuotaPoolGroupUsageQuery", q)
+}
+
 // The RedeemCodeFunc type is an adapter to allow the use of ordinary function as a Querier.
 type RedeemCodeFunc func(context.Context, *ent.RedeemCodeQuery) (ent.Value, error)
 
@@ -1214,6 +1326,14 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.PromoCodeUsageQuery, predicate.PromoCodeUsage, promocodeusage.OrderOption]{typ: ent.TypePromoCodeUsage, tq: q}, nil
 	case *ent.ProxyQuery:
 		return &query[*ent.ProxyQuery, predicate.Proxy, proxy.OrderOption]{typ: ent.TypeProxy, tq: q}, nil
+	case *ent.QuotaPoolQuery:
+		return &query[*ent.QuotaPoolQuery, predicate.QuotaPool, quotapool.OrderOption]{typ: ent.TypeQuotaPool, tq: q}, nil
+	case *ent.QuotaPoolAccountQuery:
+		return &query[*ent.QuotaPoolAccountQuery, predicate.QuotaPoolAccount, quotapoolaccount.OrderOption]{typ: ent.TypeQuotaPoolAccount, tq: q}, nil
+	case *ent.QuotaPoolGroupLimitQuery:
+		return &query[*ent.QuotaPoolGroupLimitQuery, predicate.QuotaPoolGroupLimit, quotapoolgrouplimit.OrderOption]{typ: ent.TypeQuotaPoolGroupLimit, tq: q}, nil
+	case *ent.QuotaPoolGroupUsageQuery:
+		return &query[*ent.QuotaPoolGroupUsageQuery, predicate.QuotaPoolGroupUsage, quotapoolgroupusage.OrderOption]{typ: ent.TypeQuotaPoolGroupUsage, tq: q}, nil
 	case *ent.RedeemCodeQuery:
 		return &query[*ent.RedeemCodeQuery, predicate.RedeemCode, redeemcode.OrderOption]{typ: ent.TypeRedeemCode, tq: q}, nil
 	case *ent.SecuritySecretQuery:

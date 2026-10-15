@@ -23,7 +23,13 @@ func (s *OpenAIGatewayService) ForwardEmbeddings(
 	account *Account,
 	body []byte,
 	defaultMappedModel string,
-) (*OpenAIForwardResult, error) {
+) (weeklyResult *OpenAIForwardResult, weeklyErr error) {
+	ctx = weeklyForwardContext(ctx, c)
+	ctx, weeklyTrace, weeklyErr := s.prepareWeeklyForward(ctx, account)
+	if weeklyErr != nil {
+		return nil, weeklyErr
+	}
+	defer func() { s.finishWeeklyForward(weeklyTrace, weeklyResult) }()
 	startTime := time.Now()
 
 	originalModel := strings.TrimSpace(gjson.GetBytes(body, "model").String())

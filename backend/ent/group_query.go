@@ -18,6 +18,8 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/predicate"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgrouplimit"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgroupusage"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 	"github.com/Wei-Shaw/sub2api/ent/user"
@@ -38,6 +40,8 @@ type GroupQuery struct {
 	withUsageLogs         *UsageLogQuery
 	withAccounts          *AccountQuery
 	withAllowedUsers      *UserQuery
+	withQuotaPoolLimits   *QuotaPoolGroupLimitQuery
+	withQuotaPoolUsages   *QuotaPoolGroupUsageQuery
 	withAccountGroups     *AccountGroupQuery
 	withUserAllowedGroups *UserAllowedGroupQuery
 	modifiers             []func(*sql.Selector)
@@ -202,6 +206,50 @@ func (_q *GroupQuery) QueryAllowedUsers() *UserQuery {
 			sqlgraph.From(group.Table, group.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, group.AllowedUsersTable, group.AllowedUsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryQuotaPoolLimits chains the current query on the "quota_pool_limits" edge.
+func (_q *GroupQuery) QueryQuotaPoolLimits() *QuotaPoolGroupLimitQuery {
+	query := (&QuotaPoolGroupLimitClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, selector),
+			sqlgraph.To(quotapoolgrouplimit.Table, quotapoolgrouplimit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.QuotaPoolLimitsTable, group.QuotaPoolLimitsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryQuotaPoolUsages chains the current query on the "quota_pool_usages" edge.
+func (_q *GroupQuery) QueryQuotaPoolUsages() *QuotaPoolGroupUsageQuery {
+	query := (&QuotaPoolGroupUsageClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, selector),
+			sqlgraph.To(quotapoolgroupusage.Table, quotapoolgroupusage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.QuotaPoolUsagesTable, group.QuotaPoolUsagesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -451,6 +499,8 @@ func (_q *GroupQuery) Clone() *GroupQuery {
 		withUsageLogs:         _q.withUsageLogs.Clone(),
 		withAccounts:          _q.withAccounts.Clone(),
 		withAllowedUsers:      _q.withAllowedUsers.Clone(),
+		withQuotaPoolLimits:   _q.withQuotaPoolLimits.Clone(),
+		withQuotaPoolUsages:   _q.withQuotaPoolUsages.Clone(),
 		withAccountGroups:     _q.withAccountGroups.Clone(),
 		withUserAllowedGroups: _q.withUserAllowedGroups.Clone(),
 		// clone intermediate query.
@@ -522,6 +572,28 @@ func (_q *GroupQuery) WithAllowedUsers(opts ...func(*UserQuery)) *GroupQuery {
 		opt(query)
 	}
 	_q.withAllowedUsers = query
+	return _q
+}
+
+// WithQuotaPoolLimits tells the query-builder to eager-load the nodes that are connected to
+// the "quota_pool_limits" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *GroupQuery) WithQuotaPoolLimits(opts ...func(*QuotaPoolGroupLimitQuery)) *GroupQuery {
+	query := (&QuotaPoolGroupLimitClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withQuotaPoolLimits = query
+	return _q
+}
+
+// WithQuotaPoolUsages tells the query-builder to eager-load the nodes that are connected to
+// the "quota_pool_usages" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *GroupQuery) WithQuotaPoolUsages(opts ...func(*QuotaPoolGroupUsageQuery)) *GroupQuery {
+	query := (&QuotaPoolGroupUsageClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withQuotaPoolUsages = query
 	return _q
 }
 
@@ -625,13 +697,15 @@ func (_q *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 	var (
 		nodes       = []*Group{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [10]bool{
 			_q.withAPIKeys != nil,
 			_q.withRedeemCodes != nil,
 			_q.withSubscriptions != nil,
 			_q.withUsageLogs != nil,
 			_q.withAccounts != nil,
 			_q.withAllowedUsers != nil,
+			_q.withQuotaPoolLimits != nil,
+			_q.withQuotaPoolUsages != nil,
 			_q.withAccountGroups != nil,
 			_q.withUserAllowedGroups != nil,
 		}
@@ -696,6 +770,20 @@ func (_q *GroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Group,
 		if err := _q.loadAllowedUsers(ctx, query, nodes,
 			func(n *Group) { n.Edges.AllowedUsers = []*User{} },
 			func(n *Group, e *User) { n.Edges.AllowedUsers = append(n.Edges.AllowedUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withQuotaPoolLimits; query != nil {
+		if err := _q.loadQuotaPoolLimits(ctx, query, nodes,
+			func(n *Group) { n.Edges.QuotaPoolLimits = []*QuotaPoolGroupLimit{} },
+			func(n *Group, e *QuotaPoolGroupLimit) { n.Edges.QuotaPoolLimits = append(n.Edges.QuotaPoolLimits, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withQuotaPoolUsages; query != nil {
+		if err := _q.loadQuotaPoolUsages(ctx, query, nodes,
+			func(n *Group) { n.Edges.QuotaPoolUsages = []*QuotaPoolGroupUsage{} },
+			func(n *Group, e *QuotaPoolGroupUsage) { n.Edges.QuotaPoolUsages = append(n.Edges.QuotaPoolUsages, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -964,6 +1052,66 @@ func (_q *GroupQuery) loadAllowedUsers(ctx context.Context, query *UserQuery, no
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (_q *GroupQuery) loadQuotaPoolLimits(ctx context.Context, query *QuotaPoolGroupLimitQuery, nodes []*Group, init func(*Group), assign func(*Group, *QuotaPoolGroupLimit)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Group)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(quotapoolgrouplimit.FieldGroupID)
+	}
+	query.Where(predicate.QuotaPoolGroupLimit(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(group.QuotaPoolLimitsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GroupID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "group_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *GroupQuery) loadQuotaPoolUsages(ctx context.Context, query *QuotaPoolGroupUsageQuery, nodes []*Group, init func(*Group), assign func(*Group, *QuotaPoolGroupUsage)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Group)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(quotapoolgroupusage.FieldGroupID)
+	}
+	query.Where(predicate.QuotaPoolGroupUsage(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(group.QuotaPoolUsagesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GroupID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "group_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

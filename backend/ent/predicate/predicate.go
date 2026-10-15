@@ -84,6 +84,18 @@ type PromoCodeUsage func(*sql.Selector)
 // Proxy is the predicate function for proxy builders.
 type Proxy func(*sql.Selector)
 
+// QuotaPool is the predicate function for quotapool builders.
+type QuotaPool func(*sql.Selector)
+
+// QuotaPoolAccount is the predicate function for quotapoolaccount builders.
+type QuotaPoolAccount func(*sql.Selector)
+
+// QuotaPoolGroupLimit is the predicate function for quotapoolgrouplimit builders.
+type QuotaPoolGroupLimit func(*sql.Selector)
+
+// QuotaPoolGroupUsage is the predicate function for quotapoolgroupusage builders.
+type QuotaPoolGroupUsage func(*sql.Selector)
+
 // RedeemCode is the predicate function for redeemcode builders.
 type RedeemCode func(*sql.Selector)
 

@@ -842,6 +842,11 @@ export default {
       }
     },
 
+    quotaPools: {
+      title: '额度池管理',
+      description: '管理共享额度池和分组占比限制'
+    },
+
     // Groups Management
     groups: {
       title: '分组管理',

@@ -36,6 +36,7 @@ import riskControlAPI from './riskControl'
 import adminComplianceAPI from './compliance'
 import auditAPI from './audit'
 import pluginsAPI from './plugins'
+import quotaPoolsAPI from './quotaPools'
 
 /**
  * Unified admin API object for convenient access
@@ -73,7 +74,8 @@ export const adminAPI = {
   riskControl: riskControlAPI,
   compliance: adminComplianceAPI,
   audit: auditAPI,
-  plugins: pluginsAPI
+  plugins: pluginsAPI,
+  quotaPools: quotaPoolsAPI
 }
 
 export {
@@ -109,7 +111,8 @@ export {
   riskControlAPI,
   adminComplianceAPI,
   auditAPI,
-  pluginsAPI
+  pluginsAPI,
+  quotaPoolsAPI
 }
 
 export default adminAPI
@@ -127,3 +130,9 @@ export type {
   PluginUISession,
   PluginTestResult
 } from './plugins'
+export type {
+  QuotaPool,
+  QuotaPoolAccount,
+  QuotaPoolGroupLimit,
+  QuotaPoolGroupUsage
+} from './quotaPools'

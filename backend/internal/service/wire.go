@@ -194,6 +194,7 @@ func ProvideOpenAIQuotaService(
 	openAIGatewayService *OpenAIGatewayService,
 ) *OpenAIQuotaService {
 	service := NewOpenAIQuotaService(accountRepo, proxyRepo, tokenProvider, privacyClientFactory, referralClient)
+	service.StartWeeklyRefresh(openAIGatewayService.gatewayHooks)
 	service.agentIdentityWS = openAIGatewayService
 	return service
 }
@@ -847,10 +848,13 @@ func ProvideAPIKeyService(
 	cfg *config.Config,
 	billingCacheService *BillingCacheService,
 	concurrencyService *ConcurrencyService,
+	quotaPoolRepo QuotaPoolRepository,
 ) *APIKeyService {
 	svc := NewAPIKeyService(apiKeyRepo, userRepo, groupRepo, userSubRepo, userGroupRateRepo, cache, cfg)
 	svc.SetRateLimitCacheInvalidator(billingCacheService)
 	svc.SetConcurrencyService(concurrencyService)
+	svc.weeklyScopeRepo = quotaPoolRepo
+	svc.weeklyScopeRequired = true
 	return svc
 }
 
@@ -871,13 +875,14 @@ var ProviderSet = wire.NewSet(
 	NewPromoService,
 	NewUsageService,
 	NewDashboardService,
+	NewQuotaPoolService,
 	ProvidePricingService,
 	NewBillingService,
 	ProvideBillingCacheService,
 	NewAnnouncementService,
 	NewAdminService,
-	NewGatewayService,
-	NewOpenAIGatewayService,
+	ProvideGatewayService,
+	ProvideOpenAIGatewayService,
 	ProvideImageStorageSettingService,
 	ProvideImageTaskService,
 	ProvideBatchImageModelPricingResolver,

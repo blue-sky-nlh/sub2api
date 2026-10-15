@@ -35,6 +35,9 @@ func (s *GatewayService) ForwardAsResponses(
 	body []byte,
 	parsed *ParsedRequest,
 ) (*ForwardResult, error) {
+	if err := RejectNonWeeklyGateway(ctx); err != nil {
+		return nil, err
+	}
 	startTime := time.Now()
 
 	normalizedBody, normalized, err := normalizeOpenAIResponsesLegacyIngress(body)

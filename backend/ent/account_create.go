@@ -14,6 +14,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/account"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolaccount"
 	"github.com/Wei-Shaw/sub2api/ent/usagelog"
 )
 
@@ -488,6 +489,21 @@ func (_c *AccountCreate) AddUsageLogs(v ...*UsageLog) *AccountCreate {
 	return _c.AddUsageLogIDs(ids...)
 }
 
+// AddQuotaPoolAccountIDs adds the "quota_pool_accounts" edge to the QuotaPoolAccount entity by IDs.
+func (_c *AccountCreate) AddQuotaPoolAccountIDs(ids ...int64) *AccountCreate {
+	_c.mutation.AddQuotaPoolAccountIDs(ids...)
+	return _c
+}
+
+// AddQuotaPoolAccounts adds the "quota_pool_accounts" edges to the QuotaPoolAccount entity.
+func (_c *AccountCreate) AddQuotaPoolAccounts(v ...*QuotaPoolAccount) *AccountCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddQuotaPoolAccountIDs(ids...)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (_c *AccountCreate) Mutation() *AccountMutation {
 	return _c.mutation
@@ -880,6 +896,22 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.QuotaPoolAccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.QuotaPoolAccountsTable,
+			Columns: []string{account.QuotaPoolAccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quotapoolaccount.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

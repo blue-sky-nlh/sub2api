@@ -1508,7 +1508,7 @@ func (s *OpenAIGatewayService) listSchedulableAccounts(ctx context.Context, grou
 		if platform == PlatformGrok {
 			accounts = s.filterGrokFreeQuotaAccountsForOpenAI(ctx, accounts)
 		}
-		return accounts, nil
+		return filterAccountsByGatewayHooks(ctx, s.gatewayHooks, accounts, platform, groupID, 0, "")
 	}
 	var accounts []Account
 	var err error
@@ -1526,7 +1526,7 @@ func (s *OpenAIGatewayService) listSchedulableAccounts(ctx context.Context, grou
 	if platform == PlatformGrok {
 		accounts = s.filterGrokFreeQuotaAccountsForOpenAI(ctx, accounts)
 	}
-	return accounts, nil
+	return filterAccountsByGatewayHooks(ctx, s.gatewayHooks, accounts, platform, groupID, 0, "")
 }
 
 func (s *OpenAIGatewayService) tryAcquireAccountSlot(ctx context.Context, accountID int64, maxConcurrency int) (*AcquireResult, error) {

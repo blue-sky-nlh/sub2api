@@ -31,6 +31,10 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/promocode"
 	"github.com/Wei-Shaw/sub2api/ent/promocodeusage"
 	"github.com/Wei-Shaw/sub2api/ent/proxy"
+	"github.com/Wei-Shaw/sub2api/ent/quotapool"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolaccount"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgrouplimit"
+	"github.com/Wei-Shaw/sub2api/ent/quotapoolgroupusage"
 	"github.com/Wei-Shaw/sub2api/ent/redeemcode"
 	"github.com/Wei-Shaw/sub2api/ent/schema"
 	"github.com/Wei-Shaw/sub2api/ent/securitysecret"
@@ -1739,6 +1743,162 @@ func init() {
 	proxyDescExpiryWarnDays := proxyFields[10].Descriptor()
 	// proxy.DefaultExpiryWarnDays holds the default value on creation for the expiry_warn_days field.
 	proxy.DefaultExpiryWarnDays = proxyDescExpiryWarnDays.Default.(int)
+	quotapoolMixin := schema.QuotaPool{}.Mixin()
+	quotapoolMixinHooks1 := quotapoolMixin[1].Hooks()
+	quotapool.Hooks[0] = quotapoolMixinHooks1[0]
+	quotapoolMixinInters1 := quotapoolMixin[1].Interceptors()
+	quotapool.Interceptors[0] = quotapoolMixinInters1[0]
+	quotapoolMixinFields0 := quotapoolMixin[0].Fields()
+	_ = quotapoolMixinFields0
+	quotapoolFields := schema.QuotaPool{}.Fields()
+	_ = quotapoolFields
+	// quotapoolDescCreatedAt is the schema descriptor for created_at field.
+	quotapoolDescCreatedAt := quotapoolMixinFields0[0].Descriptor()
+	// quotapool.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quotapool.DefaultCreatedAt = quotapoolDescCreatedAt.Default.(func() time.Time)
+	// quotapoolDescUpdatedAt is the schema descriptor for updated_at field.
+	quotapoolDescUpdatedAt := quotapoolMixinFields0[1].Descriptor()
+	// quotapool.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quotapool.DefaultUpdatedAt = quotapoolDescUpdatedAt.Default.(func() time.Time)
+	// quotapool.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quotapool.UpdateDefaultUpdatedAt = quotapoolDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// quotapoolDescName is the schema descriptor for name field.
+	quotapoolDescName := quotapoolFields[0].Descriptor()
+	// quotapool.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	quotapool.NameValidator = func() func(string) error {
+		validators := quotapoolDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// quotapoolDescEnabled is the schema descriptor for enabled field.
+	quotapoolDescEnabled := quotapoolFields[2].Descriptor()
+	// quotapool.DefaultEnabled holds the default value on creation for the enabled field.
+	quotapool.DefaultEnabled = quotapoolDescEnabled.Default.(bool)
+	// quotapoolDescPeriodType is the schema descriptor for period_type field.
+	quotapoolDescPeriodType := quotapoolFields[3].Descriptor()
+	// quotapool.DefaultPeriodType holds the default value on creation for the period_type field.
+	quotapool.DefaultPeriodType = quotapoolDescPeriodType.Default.(string)
+	// quotapool.PeriodTypeValidator is a validator for the "period_type" field. It is called by the builders before save.
+	quotapool.PeriodTypeValidator = quotapoolDescPeriodType.Validators[0].(func(string) error)
+	// quotapoolDescDefaultAction is the schema descriptor for default_action field.
+	quotapoolDescDefaultAction := quotapoolFields[4].Descriptor()
+	// quotapool.DefaultDefaultAction holds the default value on creation for the default_action field.
+	quotapool.DefaultDefaultAction = quotapoolDescDefaultAction.Default.(string)
+	// quotapool.DefaultActionValidator is a validator for the "default_action" field. It is called by the builders before save.
+	quotapool.DefaultActionValidator = quotapoolDescDefaultAction.Validators[0].(func(string) error)
+	quotapoolaccountMixin := schema.QuotaPoolAccount{}.Mixin()
+	quotapoolaccountMixinHooks1 := quotapoolaccountMixin[1].Hooks()
+	quotapoolaccount.Hooks[0] = quotapoolaccountMixinHooks1[0]
+	quotapoolaccountMixinInters1 := quotapoolaccountMixin[1].Interceptors()
+	quotapoolaccount.Interceptors[0] = quotapoolaccountMixinInters1[0]
+	quotapoolaccountMixinFields0 := quotapoolaccountMixin[0].Fields()
+	_ = quotapoolaccountMixinFields0
+	quotapoolaccountFields := schema.QuotaPoolAccount{}.Fields()
+	_ = quotapoolaccountFields
+	// quotapoolaccountDescCreatedAt is the schema descriptor for created_at field.
+	quotapoolaccountDescCreatedAt := quotapoolaccountMixinFields0[0].Descriptor()
+	// quotapoolaccount.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quotapoolaccount.DefaultCreatedAt = quotapoolaccountDescCreatedAt.Default.(func() time.Time)
+	// quotapoolaccountDescUpdatedAt is the schema descriptor for updated_at field.
+	quotapoolaccountDescUpdatedAt := quotapoolaccountMixinFields0[1].Descriptor()
+	// quotapoolaccount.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quotapoolaccount.DefaultUpdatedAt = quotapoolaccountDescUpdatedAt.Default.(func() time.Time)
+	// quotapoolaccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quotapoolaccount.UpdateDefaultUpdatedAt = quotapoolaccountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// quotapoolaccountDescPlatform is the schema descriptor for platform field.
+	quotapoolaccountDescPlatform := quotapoolaccountFields[1].Descriptor()
+	// quotapoolaccount.PlatformValidator is a validator for the "platform" field. It is called by the builders before save.
+	quotapoolaccount.PlatformValidator = func() func(string) error {
+		validators := quotapoolaccountDescPlatform.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(platform string) error {
+			for _, fn := range fns {
+				if err := fn(platform); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// quotapoolaccountDescEnabled is the schema descriptor for enabled field.
+	quotapoolaccountDescEnabled := quotapoolaccountFields[3].Descriptor()
+	// quotapoolaccount.DefaultEnabled holds the default value on creation for the enabled field.
+	quotapoolaccount.DefaultEnabled = quotapoolaccountDescEnabled.Default.(bool)
+	// quotapoolaccountDescLastUsagePercent is the schema descriptor for last_usage_percent field.
+	quotapoolaccountDescLastUsagePercent := quotapoolaccountFields[4].Descriptor()
+	// quotapoolaccount.DefaultLastUsagePercent holds the default value on creation for the last_usage_percent field.
+	quotapoolaccount.DefaultLastUsagePercent = quotapoolaccountDescLastUsagePercent.Default.(float64)
+	quotapoolgrouplimitMixin := schema.QuotaPoolGroupLimit{}.Mixin()
+	quotapoolgrouplimitMixinHooks1 := quotapoolgrouplimitMixin[1].Hooks()
+	quotapoolgrouplimit.Hooks[0] = quotapoolgrouplimitMixinHooks1[0]
+	quotapoolgrouplimitMixinInters1 := quotapoolgrouplimitMixin[1].Interceptors()
+	quotapoolgrouplimit.Interceptors[0] = quotapoolgrouplimitMixinInters1[0]
+	quotapoolgrouplimitMixinFields0 := quotapoolgrouplimitMixin[0].Fields()
+	_ = quotapoolgrouplimitMixinFields0
+	quotapoolgrouplimitFields := schema.QuotaPoolGroupLimit{}.Fields()
+	_ = quotapoolgrouplimitFields
+	// quotapoolgrouplimitDescCreatedAt is the schema descriptor for created_at field.
+	quotapoolgrouplimitDescCreatedAt := quotapoolgrouplimitMixinFields0[0].Descriptor()
+	// quotapoolgrouplimit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quotapoolgrouplimit.DefaultCreatedAt = quotapoolgrouplimitDescCreatedAt.Default.(func() time.Time)
+	// quotapoolgrouplimitDescUpdatedAt is the schema descriptor for updated_at field.
+	quotapoolgrouplimitDescUpdatedAt := quotapoolgrouplimitMixinFields0[1].Descriptor()
+	// quotapoolgrouplimit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quotapoolgrouplimit.DefaultUpdatedAt = quotapoolgrouplimitDescUpdatedAt.Default.(func() time.Time)
+	// quotapoolgrouplimit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quotapoolgrouplimit.UpdateDefaultUpdatedAt = quotapoolgrouplimitDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// quotapoolgrouplimitDescPercentBasisPoints is the schema descriptor for percent_basis_points field.
+	quotapoolgrouplimitDescPercentBasisPoints := quotapoolgrouplimitFields[2].Descriptor()
+	// quotapoolgrouplimit.DefaultPercentBasisPoints holds the default value on creation for the percent_basis_points field.
+	quotapoolgrouplimit.DefaultPercentBasisPoints = quotapoolgrouplimitDescPercentBasisPoints.Default.(int)
+	// quotapoolgrouplimitDescEnabled is the schema descriptor for enabled field.
+	quotapoolgrouplimitDescEnabled := quotapoolgrouplimitFields[3].Descriptor()
+	// quotapoolgrouplimit.DefaultEnabled holds the default value on creation for the enabled field.
+	quotapoolgrouplimit.DefaultEnabled = quotapoolgrouplimitDescEnabled.Default.(bool)
+	quotapoolgroupusageMixin := schema.QuotaPoolGroupUsage{}.Mixin()
+	quotapoolgroupusageMixinFields0 := quotapoolgroupusageMixin[0].Fields()
+	_ = quotapoolgroupusageMixinFields0
+	quotapoolgroupusageFields := schema.QuotaPoolGroupUsage{}.Fields()
+	_ = quotapoolgroupusageFields
+	// quotapoolgroupusageDescCreatedAt is the schema descriptor for created_at field.
+	quotapoolgroupusageDescCreatedAt := quotapoolgroupusageMixinFields0[0].Descriptor()
+	// quotapoolgroupusage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quotapoolgroupusage.DefaultCreatedAt = quotapoolgroupusageDescCreatedAt.Default.(func() time.Time)
+	// quotapoolgroupusageDescUpdatedAt is the schema descriptor for updated_at field.
+	quotapoolgroupusageDescUpdatedAt := quotapoolgroupusageMixinFields0[1].Descriptor()
+	// quotapoolgroupusage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quotapoolgroupusage.DefaultUpdatedAt = quotapoolgroupusageDescUpdatedAt.Default.(func() time.Time)
+	// quotapoolgroupusage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quotapoolgroupusage.UpdateDefaultUpdatedAt = quotapoolgroupusageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// quotapoolgroupusageDescPeriodType is the schema descriptor for period_type field.
+	quotapoolgroupusageDescPeriodType := quotapoolgroupusageFields[3].Descriptor()
+	// quotapoolgroupusage.DefaultPeriodType holds the default value on creation for the period_type field.
+	quotapoolgroupusage.DefaultPeriodType = quotapoolgroupusageDescPeriodType.Default.(string)
+	// quotapoolgroupusage.PeriodTypeValidator is a validator for the "period_type" field. It is called by the builders before save.
+	quotapoolgroupusage.PeriodTypeValidator = quotapoolgroupusageDescPeriodType.Validators[0].(func(string) error)
+	// quotapoolgroupusageDescPeriodKey is the schema descriptor for period_key field.
+	quotapoolgroupusageDescPeriodKey := quotapoolgroupusageFields[4].Descriptor()
+	// quotapoolgroupusage.DefaultPeriodKey holds the default value on creation for the period_key field.
+	quotapoolgroupusage.DefaultPeriodKey = quotapoolgroupusageDescPeriodKey.Default.(string)
+	// quotapoolgroupusage.PeriodKeyValidator is a validator for the "period_key" field. It is called by the builders before save.
+	quotapoolgroupusage.PeriodKeyValidator = quotapoolgroupusageDescPeriodKey.Validators[0].(func(string) error)
+	// quotapoolgroupusageDescUsedCost is the schema descriptor for used_cost field.
+	quotapoolgroupusageDescUsedCost := quotapoolgroupusageFields[5].Descriptor()
+	// quotapoolgroupusage.DefaultUsedCost holds the default value on creation for the used_cost field.
+	quotapoolgroupusage.DefaultUsedCost = quotapoolgroupusageDescUsedCost.Default.(float64)
 	redeemcodeFields := schema.RedeemCode{}.Fields()
 	_ = redeemcodeFields
 	// redeemcodeDescCode is the schema descriptor for code field.

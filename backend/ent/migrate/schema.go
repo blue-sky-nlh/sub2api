@@ -1453,6 +1453,212 @@ var (
 			},
 		},
 	}
+	// QuotaPoolsColumns holds the columns for the "quota_pools" table.
+	QuotaPoolsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "description", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "period_type", Type: field.TypeString, Size: 20, Default: "current"},
+		{Name: "default_action", Type: field.TypeString, Size: 20, Default: "allow"},
+	}
+	// QuotaPoolsTable holds the schema information for the "quota_pools" table.
+	QuotaPoolsTable = &schema.Table{
+		Name:       "quota_pools",
+		Columns:    QuotaPoolsColumns,
+		PrimaryKey: []*schema.Column{QuotaPoolsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quotapool_name",
+				Unique:  true,
+				Columns: []*schema.Column{QuotaPoolsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "quotapool_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolsColumns[6]},
+			},
+			{
+				Name:    "quotapool_period_type",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolsColumns[7]},
+			},
+		},
+	}
+	// QuotaPoolAccountsColumns holds the columns for the "quota_pool_accounts" table.
+	QuotaPoolAccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "platform", Type: field.TypeString, Size: 50},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "last_usage_percent", Type: field.TypeFloat64, Default: 0},
+		{Name: "account_id", Type: field.TypeInt64},
+		{Name: "quota_pool_id", Type: field.TypeInt64},
+	}
+	// QuotaPoolAccountsTable holds the schema information for the "quota_pool_accounts" table.
+	QuotaPoolAccountsTable = &schema.Table{
+		Name:       "quota_pool_accounts",
+		Columns:    QuotaPoolAccountsColumns,
+		PrimaryKey: []*schema.Column{QuotaPoolAccountsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quota_pool_accounts_accounts_quota_pool_accounts",
+				Columns:    []*schema.Column{QuotaPoolAccountsColumns[7]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quota_pool_accounts_quota_pools_accounts",
+				Columns:    []*schema.Column{QuotaPoolAccountsColumns[8]},
+				RefColumns: []*schema.Column{QuotaPoolsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quotapoolaccount_quota_pool_id_platform_account_id",
+				Unique:  true,
+				Columns: []*schema.Column{QuotaPoolAccountsColumns[8], QuotaPoolAccountsColumns[4], QuotaPoolAccountsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "quotapoolaccount_platform_account_id",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolAccountsColumns[4], QuotaPoolAccountsColumns[7]},
+			},
+			{
+				Name:    "quotapoolaccount_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolAccountsColumns[5]},
+			},
+		},
+	}
+	// QuotaPoolGroupLimitsColumns holds the columns for the "quota_pool_group_limits" table.
+	QuotaPoolGroupLimitsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "percent_basis_points", Type: field.TypeInt, Default: 0},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "group_id", Type: field.TypeInt64},
+		{Name: "quota_pool_id", Type: field.TypeInt64},
+	}
+	// QuotaPoolGroupLimitsTable holds the schema information for the "quota_pool_group_limits" table.
+	QuotaPoolGroupLimitsTable = &schema.Table{
+		Name:       "quota_pool_group_limits",
+		Columns:    QuotaPoolGroupLimitsColumns,
+		PrimaryKey: []*schema.Column{QuotaPoolGroupLimitsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quota_pool_group_limits_groups_quota_pool_limits",
+				Columns:    []*schema.Column{QuotaPoolGroupLimitsColumns[6]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quota_pool_group_limits_quota_pools_group_limits",
+				Columns:    []*schema.Column{QuotaPoolGroupLimitsColumns[7]},
+				RefColumns: []*schema.Column{QuotaPoolsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quotapoolgrouplimit_quota_pool_id_group_id",
+				Unique:  true,
+				Columns: []*schema.Column{QuotaPoolGroupLimitsColumns[7], QuotaPoolGroupLimitsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "quotapoolgrouplimit_group_id",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolGroupLimitsColumns[6]},
+			},
+			{
+				Name:    "quotapoolgrouplimit_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolGroupLimitsColumns[5]},
+			},
+		},
+	}
+	// QuotaPoolGroupUsageColumns holds the columns for the "quota_pool_group_usage" table.
+	QuotaPoolGroupUsageColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "period_type", Type: field.TypeString, Size: 20, Default: "current"},
+		{Name: "period_key", Type: field.TypeString, Size: 20, Default: "current"},
+		{Name: "used_cost", Type: field.TypeFloat64, Default: 0, SchemaType: map[string]string{"postgres": "decimal(20,10)"}},
+		{Name: "group_id", Type: field.TypeInt64},
+		{Name: "quota_pool_id", Type: field.TypeInt64},
+		{Name: "quota_pool_account_id", Type: field.TypeInt64},
+	}
+	// QuotaPoolGroupUsageTable holds the schema information for the "quota_pool_group_usage" table.
+	QuotaPoolGroupUsageTable = &schema.Table{
+		Name:       "quota_pool_group_usage",
+		Columns:    QuotaPoolGroupUsageColumns,
+		PrimaryKey: []*schema.Column{QuotaPoolGroupUsageColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quota_pool_group_usage_groups_quota_pool_usages",
+				Columns:    []*schema.Column{QuotaPoolGroupUsageColumns[6]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quota_pool_group_usage_quota_pools_group_usages",
+				Columns:    []*schema.Column{QuotaPoolGroupUsageColumns[7]},
+				RefColumns: []*schema.Column{QuotaPoolsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quota_pool_group_usage_quota_pool_accounts_group_usages",
+				Columns:    []*schema.Column{QuotaPoolGroupUsageColumns[8]},
+				RefColumns: []*schema.Column{QuotaPoolAccountsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quotapoolgroupusage_quota_pool_id_quota_pool_account_id_group_id_period_type_period_key",
+				Unique:  true,
+				Columns: []*schema.Column{QuotaPoolGroupUsageColumns[7], QuotaPoolGroupUsageColumns[8], QuotaPoolGroupUsageColumns[6], QuotaPoolGroupUsageColumns[3], QuotaPoolGroupUsageColumns[4]},
+			},
+			{
+				Name:    "quotapoolgroupusage_quota_pool_id_group_id_period_type_period_key",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolGroupUsageColumns[7], QuotaPoolGroupUsageColumns[6], QuotaPoolGroupUsageColumns[3], QuotaPoolGroupUsageColumns[4]},
+			},
+			{
+				Name:    "quotapoolgroupusage_quota_pool_account_id",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolGroupUsageColumns[8]},
+			},
+			{
+				Name:    "quotapoolgroupusage_group_id",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolGroupUsageColumns[6]},
+			},
+			{
+				Name:    "quotapoolgroupusage_period_type_period_key",
+				Unique:  false,
+				Columns: []*schema.Column{QuotaPoolGroupUsageColumns[3], QuotaPoolGroupUsageColumns[4]},
+			},
+		},
+	}
 	// RedeemCodesColumns holds the columns for the "redeem_codes" table.
 	RedeemCodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2116,6 +2322,10 @@ var (
 		PromoCodesTable,
 		PromoCodeUsagesTable,
 		ProxiesTable,
+		QuotaPoolsTable,
+		QuotaPoolAccountsTable,
+		QuotaPoolGroupLimitsTable,
+		QuotaPoolGroupUsageTable,
 		RedeemCodesTable,
 		SecuritySecretsTable,
 		SettingsTable,
@@ -2231,6 +2441,25 @@ func init() {
 	ProxiesTable.ForeignKeys[0].RefTable = ProxiesTable
 	ProxiesTable.Annotation = &entsql.Annotation{
 		Table: "proxies",
+	}
+	QuotaPoolsTable.Annotation = &entsql.Annotation{
+		Table: "quota_pools",
+	}
+	QuotaPoolAccountsTable.ForeignKeys[0].RefTable = AccountsTable
+	QuotaPoolAccountsTable.ForeignKeys[1].RefTable = QuotaPoolsTable
+	QuotaPoolAccountsTable.Annotation = &entsql.Annotation{
+		Table: "quota_pool_accounts",
+	}
+	QuotaPoolGroupLimitsTable.ForeignKeys[0].RefTable = GroupsTable
+	QuotaPoolGroupLimitsTable.ForeignKeys[1].RefTable = QuotaPoolsTable
+	QuotaPoolGroupLimitsTable.Annotation = &entsql.Annotation{
+		Table: "quota_pool_group_limits",
+	}
+	QuotaPoolGroupUsageTable.ForeignKeys[0].RefTable = GroupsTable
+	QuotaPoolGroupUsageTable.ForeignKeys[1].RefTable = QuotaPoolsTable
+	QuotaPoolGroupUsageTable.ForeignKeys[2].RefTable = QuotaPoolAccountsTable
+	QuotaPoolGroupUsageTable.Annotation = &entsql.Annotation{
+		Table: "quota_pool_group_usage",
 	}
 	RedeemCodesTable.ForeignKeys[0].RefTable = GroupsTable
 	RedeemCodesTable.ForeignKeys[1].RefTable = UsersTable

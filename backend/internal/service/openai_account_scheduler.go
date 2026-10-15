@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Wei-Shaw/sub2api/internal/gatewayhooks"
 	"hash/fnv"
 	"log/slog"
 	"math"
@@ -2130,6 +2131,11 @@ func (s *OpenAIGatewayService) SelectAccountWithSchedulerForCapability(
 	platform := PlatformOpenAI
 	if len(platformOverride) > 0 {
 		platform = platformOverride[0]
+	}
+	if s.weeklyQuotaRequired && WeeklyQuotaControlled(ctx) {
+		if s.gatewayHooks == nil {
+			return nil, OpenAIAccountScheduleDecision{}, &gatewayhooks.QuotaError{Status: 503, Code: "quota_pool_checker_unavailable", Message: "Weekly quota checker is unavailable"}
+		}
 	}
 	return s.selectAccountWithScheduler(ctx, groupID, previousResponseID, sessionHash, requestedModel, excludedIDs, requiredTransport, requiredCapability, "", requireCompact, platform, previousResponseCanMove, useUpstreamTokenCost)
 }

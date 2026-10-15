@@ -60,7 +60,13 @@ func (s *OpenAIGatewayService) ForwardAsChatCompletions(
 	body []byte,
 	promptCacheKey string,
 	defaultMappedModel string,
-) (*OpenAIForwardResult, error) {
+) (weeklyResult *OpenAIForwardResult, weeklyErr error) {
+	ctx = weeklyForwardContext(ctx, c)
+	ctx, weeklyTrace, weeklyErr := s.prepareWeeklyForward(ctx, account)
+	if weeklyErr != nil {
+		return nil, weeklyErr
+	}
+	defer func() { s.finishWeeklyForward(weeklyTrace, weeklyResult) }()
 	return s.forwardAsChatCompletions(ctx, c, account, body, promptCacheKey, defaultMappedModel, false)
 }
 

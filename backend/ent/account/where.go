@@ -1720,6 +1720,29 @@ func HasUsageLogsWith(preds ...predicate.UsageLog) predicate.Account {
 	})
 }
 
+// HasQuotaPoolAccounts applies the HasEdge predicate on the "quota_pool_accounts" edge.
+func HasQuotaPoolAccounts() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuotaPoolAccountsTable, QuotaPoolAccountsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuotaPoolAccountsWith applies the HasEdge predicate on the "quota_pool_accounts" edge with a given conditions (other predicates).
+func HasQuotaPoolAccountsWith(preds ...predicate.QuotaPoolAccount) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newQuotaPoolAccountsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAccountGroups applies the HasEdge predicate on the "account_groups" edge.
 func HasAccountGroups() predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {

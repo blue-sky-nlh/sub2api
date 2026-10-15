@@ -131,6 +131,12 @@ func APIKeyAuthWithSubscriptionGoogle(apiKeyService *service.APIKeyService, subs
 			return
 		}
 
+		quotaCtx, quotaErr := apiKeyService.WeeklyQuotaBusinessContext(c.Request.Context(), apiKey)
+		if quotaErr != nil {
+			abortWithGoogleError(c, 503, "Commercial quota scope could not be verified")
+			return
+		}
+		c.Request = c.Request.WithContext(quotaCtx)
 		// 简易模式：跳过余额和订阅检查
 		if cfg.RunMode == config.RunModeSimple {
 			c.Set(string(ContextKeyAPIKey), apiKey)

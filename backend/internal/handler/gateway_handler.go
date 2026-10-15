@@ -15,6 +15,7 @@ import (
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/domain"
+	"github.com/Wei-Shaw/sub2api/internal/gatewayhooks"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/antigravity"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/claude"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/ctxkey"
@@ -349,6 +350,10 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 		for {
 			selection, err := h.gatewayService.SelectAccountWithLoadAwareness(c.Request.Context(), apiKey.GroupID, sessionKey, reqModel, fs.FailedAccountIDs, "", int64(0)) // Gemini 不使用会话限制
 			if err != nil {
+				if q, ok := gatewayhooks.AsQuotaError(err); ok {
+					h.handleStreamingAwareErrorWithCode(c, q.Status, "quota_error", q.Code, q.Message, streamStarted)
+					return
+				}
 				if failoverClientGone(c) {
 					reqLog.Info("gateway.account_select_aborted_client_disconnected", zap.Error(err))
 					return
@@ -487,6 +492,14 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 				}
 			}
 			// 账号槽位/等待计数需要在超时或断开时安全回收
+			if err := service.RejectNonWeeklyGateway(c.Request.Context()); err != nil {
+				if accountReleaseFunc != nil {
+					accountReleaseFunc()
+				}
+				q, _ := gatewayhooks.AsQuotaError(err)
+				h.handleStreamingAwareErrorWithCode(c, q.Status, "quota_error", q.Code, q.Message, streamStarted)
+				return
+			}
 			accountReleaseFunc = wrapReleaseOnDone(c.Request.Context(), accountReleaseFunc)
 
 			// 转发请求 - 根据账号平台分流
@@ -683,6 +696,10 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 			)
 			selection, err := h.gatewayService.SelectAccountWithLoadAwareness(c.Request.Context(), currentAPIKey.GroupID, sessionKey, reqModel, fs.FailedAccountIDs, parsedReq.MetadataUserID, subject.UserID)
 			if err != nil {
+				if q, ok := gatewayhooks.AsQuotaError(err); ok {
+					h.handleStreamingAwareErrorWithCode(c, q.Status, "quota_error", q.Code, q.Message, streamStarted)
+					return
+				}
 				if failoverClientGone(c) {
 					reqLog.Info("gateway.account_select_aborted_client_disconnected", zap.Error(err))
 					return
@@ -837,6 +854,14 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 				}
 			}
 			// 账号槽位/等待计数需要在超时或断开时安全回收
+			if err := service.RejectNonWeeklyGateway(c.Request.Context()); err != nil {
+				if accountReleaseFunc != nil {
+					accountReleaseFunc()
+				}
+				q, _ := gatewayhooks.AsQuotaError(err)
+				h.handleStreamingAwareErrorWithCode(c, q.Status, "quota_error", q.Code, q.Message, streamStarted)
+				return
+			}
 			accountReleaseFunc = wrapReleaseOnDone(c.Request.Context(), accountReleaseFunc)
 
 			// ===== 用户消息串行队列 START =====

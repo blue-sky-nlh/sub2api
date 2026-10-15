@@ -163,7 +163,12 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 		if abortIfAPIKeyGroupNotAllowed(c, apiKey) {
 			return
 		}
-		ctx := context.WithValue(c.Request.Context(), ctxkey.UserID, apiKey.User.ID)
+		quotaCtx, quotaErr := apiKeyService.WeeklyQuotaBusinessContext(c.Request.Context(), apiKey)
+		if quotaErr != nil {
+			AbortWithError(c, 503, "quota_pool_scope_unavailable", "Commercial quota scope could not be verified")
+			return
+		}
+		ctx := context.WithValue(quotaCtx, ctxkey.UserID, apiKey.User.ID)
 		c.Request = c.Request.WithContext(ctx)
 		billingInfoRequest := c.Request.URL.Path == "/v1/sub2api/billing"
 		// Async image task polling only reads data that already belongs to the
@@ -347,6 +352,9 @@ func GetAPIKeyFromContext(c *gin.Context) (*service.APIKey, bool) {
 		return nil, false
 	}
 	apiKey, ok := value.(*service.APIKey)
+	if ok && apiKey != nil && c.Request != nil {
+		c.Request = c.Request.WithContext(service.WithWeeklyQuotaOrdinaryBusiness(c.Request.Context(), apiKey.Group))
+	}
 	return apiKey, ok
 }
 
@@ -367,6 +375,9 @@ func GetOpsFallbackAPIKey(c *gin.Context) (*service.APIKey, bool) {
 		return nil, false
 	}
 	apiKey, ok := value.(*service.APIKey)
+	if ok && apiKey != nil && c.Request != nil {
+		c.Request = c.Request.WithContext(service.WithWeeklyQuotaOrdinaryBusiness(c.Request.Context(), apiKey.Group))
+	}
 	return apiKey, ok
 }
 

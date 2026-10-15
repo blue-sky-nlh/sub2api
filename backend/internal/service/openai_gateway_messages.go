@@ -32,7 +32,13 @@ func (s *OpenAIGatewayService) ForwardAsAnthropic(
 	body []byte,
 	promptCacheKey string,
 	defaultMappedModel string,
-) (*OpenAIForwardResult, error) {
+) (weeklyResult *OpenAIForwardResult, weeklyErr error) {
+	ctx = weeklyForwardContext(ctx, c)
+	ctx, weeklyTrace, weeklyErr := s.prepareWeeklyForward(ctx, account)
+	if weeklyErr != nil {
+		return nil, weeklyErr
+	}
+	defer func() { s.finishWeeklyForward(weeklyTrace, weeklyResult) }()
 	// 工具 Schema 清洗必须先于所有分流：下游每条路径（原生 Anthropic 直通、
 	// Chat Completions 转换、Responses 转换）都会把 tools 原样带给上游，而
 	// xAI / Moonshot 等严格校验方会因 input_schema 里的 required:null 或

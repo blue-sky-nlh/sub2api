@@ -845,6 +845,11 @@ export default {
       }
     },
 
+    quotaPools: {
+      title: 'Quota Pool Management',
+      description: 'Manage shared quota pools and group allocation limits'
+    },
+
     // Groups
     groups: {
       title: 'Group Management',

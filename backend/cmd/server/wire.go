@@ -13,6 +13,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/handler"
+	gatewayhooksintegration "github.com/Wei-Shaw/sub2api/internal/integration/gatewayhooks"
 	"github.com/Wei-Shaw/sub2api/internal/payment"
 	"github.com/Wei-Shaw/sub2api/internal/repository"
 	"github.com/Wei-Shaw/sub2api/internal/securityaudit"
@@ -38,6 +39,7 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 
 		// Business layer ProviderSets
 		repository.ProviderSet,
+		gatewayhooksintegration.ProvideManager,
 		service.ProviderSet,
 		securityaudit.ProviderSet,
 		payment.ProviderSet,
@@ -56,6 +58,7 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 
 		// Cleanup function provider
 		provideCleanup,
+		provideWeeklyCleanup,
 
 		// Application struct
 		wire.Struct(new(Application), "Server", "PromptAudit", "PluginManager", "Cleanup"),
@@ -131,7 +134,7 @@ func provideCleanup(
 	openAIAutoReset *service.OpenAIQuotaAutoResetService,
 	promptAudit *securityaudit.PromptService,
 	pluginManager *service.PluginManager,
-) func() {
+) applicationCleanup {
 	return func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()

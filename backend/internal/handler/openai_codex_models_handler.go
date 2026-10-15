@@ -34,6 +34,7 @@ func (h *OpenAIGatewayHandler) CodexModels(c *gin.Context) {
 		return
 	}
 
+	c.Request = c.Request.WithContext(service.WithWeeklyQuotaCatalogRead(c.Request.Context()))
 	ifNoneMatch := c.GetHeader("If-None-Match")
 	// 固定账号分支：开启后只用选定账号拉取 manifest，不经过调度器；
 	// 全部不可用/全部失败时按 FallbackToScheduler 决定回退调度器或返回错误。

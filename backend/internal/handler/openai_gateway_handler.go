@@ -18,6 +18,7 @@ import (
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/domain"
+	"github.com/Wei-Shaw/sub2api/internal/gatewayhooks"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/ctxkey"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/ip"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
@@ -688,6 +689,10 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 			requestPlatform,
 		)
 		if err != nil {
+			if q, ok := gatewayhooks.AsQuotaError(err); ok {
+				h.handleStreamingAwareErrorWithCode(c, q.Status, "quota_error", q.Code, q.Message, streamStarted, false)
+				return
+			}
 			if failoverClientGone(c) {
 				reqLog.Info("openai.account_select_aborted_client_disconnected", zap.Error(err))
 				return
@@ -859,6 +864,10 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 			})
 		}
 		if err != nil {
+			if q, ok := gatewayhooks.AsQuotaError(err); ok {
+				h.handleStreamingAwareErrorWithCode(c, q.Status, "quota_error", q.Code, q.Message, streamStarted, false)
+				return
+			}
 			if result != nil && result.ClientDisconnect {
 				reqLog.Info("openai.client_disconnected",
 					zap.Int64("account_id", account.ID),
@@ -1321,6 +1330,10 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 			requestPlatform,
 		)
 		if err != nil {
+			if q, ok := gatewayhooks.AsQuotaError(err); ok {
+				h.handleStreamingAwareErrorWithCode(c, q.Status, "quota_error", q.Code, q.Message, streamStarted, false)
+				return
+			}
 			if failoverClientGone(c) {
 				reqLog.Info("openai_messages.account_select_aborted_client_disconnected", zap.Error(err))
 				return
@@ -2302,6 +2315,13 @@ func (h *OpenAIGatewayHandler) acquireOpenAIAccountSlot(
 		}
 		account = latest
 		selection.Account = latest
+		if err := h.gatewayService.CheckWeeklyQuota(ctx, account, groupID); err != nil {
+			if selection.ReleaseFunc != nil {
+				selection.ReleaseFunc()
+			}
+			h.writeWeeklyQuotaSlotError(err, writeError)
+			return nil, openAISlotAcquireFailed
+		}
 		// 调度器已抢槽路径无门时由选号内部完成 eager 绑定；门下选号内部
 		// 推迟绑定，这里在终检通过后补准入后绑定。
 		if selection.ProfitGateActive() {
@@ -2341,6 +2361,13 @@ func (h *OpenAIGatewayHandler) acquireOpenAIAccountSlot(
 		}
 		account = latest
 		selection.Account = latest
+		if err := h.gatewayService.CheckWeeklyQuota(ctx, account, groupID); err != nil {
+			if fastReleaseFunc != nil {
+				fastReleaseFunc()
+			}
+			h.writeWeeklyQuotaSlotError(err, writeError)
+			return nil, openAISlotAcquireFailed
+		}
 		if err := h.gatewayService.BindStickySessionAfterProfitAdmission(ctx, groupID, sessionHash, account.ID); err != nil {
 			reqLog.Warn("openai.bind_sticky_session_after_profit_admission_failed", zap.Int64("account_id", account.ID), zap.Error(err))
 		}
@@ -2397,6 +2424,13 @@ func (h *OpenAIGatewayHandler) acquireOpenAIAccountSlot(
 	}
 	account = latest
 	selection.Account = latest
+	if err := h.gatewayService.CheckWeeklyQuota(ctx, account, groupID); err != nil {
+		if accountReleaseFunc != nil {
+			accountReleaseFunc()
+		}
+		h.writeWeeklyQuotaSlotError(err, writeError)
+		return nil, openAISlotAcquireFailed
+	}
 	if err := h.gatewayService.BindStickySessionAfterProfitAdmission(ctx, groupID, sessionHash, account.ID); err != nil {
 		reqLog.Warn("openai.bind_sticky_session_after_profit_admission_failed", zap.Int64("account_id", account.ID), zap.Error(err))
 	}
@@ -2812,6 +2846,9 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 			requestPlatform,
 		)
 		if err != nil {
+			if writeWeeklyQuotaWSError(ctx, wsConn, err) {
+				return
+			}
 			reqLog.Warn("openai.websocket_account_select_failed",
 				zap.Error(openAICompatibleSelectionErrorForLog(err, requestPlatform)),
 				zap.Int("excluded_account_count", len(failedAccountIDs)),
@@ -2896,6 +2933,13 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 			account = latest
 			selection.Account = latest
 			accountReleaseFunc = fastReleaseFunc
+		}
+		if err := h.gatewayService.CheckWeeklyQuota(admissionCtx, account, apiKey.GroupID); err != nil {
+			if accountReleaseFunc != nil {
+				accountReleaseFunc()
+			}
+			writeWeeklyQuotaWSError(ctx, wsConn, err)
+			return
 		}
 		// 准入完成：门并入连接 ctx，turn 级复核与 failover 重选共用。
 		ctx = admissionCtx
@@ -3217,6 +3261,9 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 
 		for {
 			err := h.gatewayService.ProxyResponsesWebSocketFromClient(ctx, c, wsConn, account, token, wsFirstMessage, hooks)
+			if writeWeeklyQuotaWSError(ctx, wsConn, err) {
+				return
+			}
 			if err == nil {
 				reqLog.Info("openai.websocket_ingress_closed", zap.Int64("account_id", account.ID))
 				return
